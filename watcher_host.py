@@ -1,7 +1,7 @@
 from utils import *
 from watchdog.observers import Observer
 from watcher_worker import StatFileHandler
-
+import time
 """
 This facilitates monitoring of directory
 """
@@ -14,6 +14,13 @@ class StatHost:
     def start(self):
         self.schedule()
         self.observer.start()
+    def run(self):
+        self.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.stop()
     def stop(self):
         self.observer.stop()
         self.observer.join()

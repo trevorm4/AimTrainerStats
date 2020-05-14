@@ -1,9 +1,11 @@
 import pandas as pd
 from datetime import datetime
+import os
 def create_dict_from_file(path):
     stats = {}
     empty_required = 2 # simply due to the format of the csv files
     num_empty = 0
+    parsed_stat_line = False
     csv_header = ""
 
     split_name = path.split(" - ")
@@ -22,10 +24,11 @@ def create_dict_from_file(path):
                     return stats
             elif num_empty == empty_required - 1:
                 split_line = line.strip().split(",")
-                if split_line[0] != "Weapon": #its the stat line
+                if not parsed_stat_line and split_line[0] != "Weapon": #its the stat line
                     for i in range(len(split_line)):
                         stats[csv_header[i]] = split_line[i]
-                else: #header
+                    parsed_stat_line = True
+                elif not parsed_stat_line and split_line[0] == "Weapon":
                     csv_header = [i for i in line.strip().split(",") if len(i) > 0]
             elif num_empty == empty_required:
                 split_line = line.split(":,")
@@ -45,9 +48,18 @@ def get_scenario(stat_dict):
     return stat_dict["Scenario"]
 
 def init_df():
-    return pd.DataFrame(columns=["Date","Scenario","Score","Accuracy"])
+    return pd.DataFrame(index = pd.DatetimeIndex([]), columns=["Scenario","Score","Accuracy"])
 
 def add_entry(df,stats):
-    temp_list = [get_datetime(stats), get_scenario(stats), get_score(stats), get_accuracy(stats)]
-    df.loc[len(df)] = temp_list
+    try:
+        temp_list = [get_scenario(stats), get_score(stats), get_accuracy(stats)]
+        df.loc[get_datetime(stats)] = temp_list
+    except KeyError:
+        print("Invalid file")
+
+def index_folder(df,path):
+    files = os.listdir(path)
+    for f in files:
+        add_entry(df,create_dict_from_file(os.path.join(path,f)))
+    df = df.sort_index()
 
