@@ -27,7 +27,7 @@ def create_dict_from_file(path):
                 if not parsed_stat_line and split_line[0] != "Weapon": #its the stat line
                     for i in range(len(split_line)):
                         stats[csv_header[i]] = split_line[i]
-                    parsed_stat_line = True
+                    parsed_stat_line = True # due to multiple weapons appearing sometimes
                 elif not parsed_stat_line and split_line[0] == "Weapon":
                     csv_header = [i for i in line.strip().split(",") if len(i) > 0]
             elif num_empty == empty_required:
@@ -36,7 +36,7 @@ def create_dict_from_file(path):
     return stats
 
 def get_score(stat_dict):
-    return stat_dict["Score"]
+    return float(stat_dict["Score"])
 
 def get_accuracy(stat_dict):
     return int(stat_dict["Hits"])/int(stat_dict["Shots"])
@@ -54,12 +54,19 @@ def add_entry(df,stats):
     try:
         temp_list = [get_scenario(stats), get_score(stats), get_accuracy(stats)]
         df.loc[get_datetime(stats)] = temp_list
+        return True
     except KeyError:
-        print("Invalid file")
+        return False
 
 def index_folder(df,path):
     files = os.listdir(path)
     for f in files:
-        add_entry(df,create_dict_from_file(os.path.join(path,f)))
+        successful = add_entry(df,create_dict_from_file(os.path.join(path,f)))
+        if not successful:
+            print(f"{f} is invalid")
     df = df.sort_index()
 
+def index_to_column(df: pd.DataFrame):
+    c = df.copy()
+    c.reset_index(inplace=True)
+    return c.rename(columns = {"index" : "date"})
