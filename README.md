@@ -9,5 +9,5 @@ Way to easily see progress in KovaaK's Aim Trainer
 
 1. `pip install -r requirements.txt`
 2. Change the path in config.yaml to the path to your Kovaak's stats directory
-3. Run `python app.py'
+3. Run `python app.py`
 4. Open the url that app says it is running at
